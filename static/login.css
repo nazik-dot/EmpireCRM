@@ -1,0 +1,307 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    min-height: 100vh;
+    font-family:
+        Inter,
+        -apple-system,
+        BlinkMacSystemFont,
+        "Segoe UI",
+        sans-serif;
+
+    background: #f5f5f3;
+    color: #111;
+}
+
+
+/* =========================
+   MAIN LAYOUT
+========================= */
+
+.auth-page {
+    min-height: 100vh;
+
+    display: grid;
+    grid-template-columns: 45% 55%;
+}
+
+
+/* =========================
+   IMAGE
+========================= */
+
+.auth-image {
+    min-height: 100vh;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    padding: 70px;
+
+    background: #111;
+}
+
+.auth-image img {
+    display: block;
+
+    width: min(75%, 480px);
+    max-height: 70vh;
+
+    object-fit: contain;
+
+    border-radius: 20px;
+}
+
+
+/* =========================
+   FORM CONTAINER
+========================= */
+
+.auth-container {
+    min-height: 100vh;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    padding: 60px;
+}
+
+.auth-box {
+    width: 100%;
+    max-width: 420px;
+}
+
+
+/* =========================
+   BACK
+========================= */
+
+.back-link {
+    display: inline-block;
+
+    margin-bottom: 45px;
+
+    color: #888;
+
+    font-size: 14px;
+
+    text-decoration: none;
+
+    transition: color 0.2s ease;
+}
+
+.back-link:hover {
+    color: #111;
+}
+
+
+/* =========================
+   BRAND
+========================= */
+
+.brand {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+
+    margin-bottom: 30px;
+
+    font-size: 14px;
+    font-weight: 600;
+}
+
+.brand-dot {
+    width: 8px;
+    height: 8px;
+
+    background: #111;
+
+    border-radius: 50%;
+}
+
+
+/* =========================
+   TITLE
+========================= */
+
+.auth-box h1 {
+    margin: 0;
+
+    font-size: 48px;
+    line-height: 1;
+
+    letter-spacing: -2px;
+
+    font-weight: 700;
+}
+
+.auth-subtitle {
+    margin-top: 16px;
+    margin-bottom: 35px;
+
+    color: #777;
+
+    font-size: 15px;
+    line-height: 1.5;
+}
+
+
+/* =========================
+   INPUTS
+========================= */
+
+.input-group {
+    margin-bottom: 20px;
+}
+
+.input-group label {
+    display: block;
+
+    margin-bottom: 8px;
+
+    color: #333;
+
+    font-size: 13px;
+    font-weight: 600;
+}
+
+.input-group input {
+    display: block;
+
+    width: 100%;
+    height: 50px;
+
+    padding: 0 15px;
+
+    border: 1px solid #d5d5d3;
+    border-radius: 10px;
+
+    background: #fff;
+    color: #111;
+
+    font-family: inherit;
+    font-size: 14px;
+
+    outline: none;
+
+    transition:
+        border-color 0.2s ease,
+        box-shadow 0.2s ease;
+}
+
+.input-group input::placeholder {
+    color: #aaa;
+}
+
+.input-group input:focus {
+    border-color: #111;
+
+    box-shadow:
+        0 0 0 3px rgba(0, 0, 0, 0.06);
+}
+
+
+/* =========================
+   BUTTON
+========================= */
+
+.auth-button {
+    display: block;
+
+    width: 100%;
+    height: 50px;
+
+    margin-top: 8px;
+
+    border: none;
+    border-radius: 10px;
+
+    background: #111;
+    color: #fff;
+
+    font-family: inherit;
+    font-size: 14px;
+    font-weight: 600;
+
+    cursor: pointer;
+
+    transition:
+        background 0.2s ease,
+        transform 0.2s ease;
+}
+
+.auth-button:hover {
+    background: #292929;
+
+    transform: translateY(-1px);
+}
+
+.auth-button:active {
+    transform: translateY(0);
+}
+
+
+/* =========================
+   REGISTER
+========================= */
+
+.switch-auth {
+    margin-top: 25px;
+
+    color: #888;
+
+    text-align: center;
+
+    font-size: 13px;
+}
+
+.switch-auth a {
+    color: #111;
+
+    font-weight: 600;
+
+    text-decoration: none;
+}
+
+.switch-auth a:hover {
+    text-decoration: underline;
+}
+
+
+/* =========================
+   MOBILE
+========================= */
+
+@media (max-width: 800px) {
+
+    .auth-page {
+        grid-template-columns: 1fr;
+    }
+
+    .auth-image {
+        min-height: 30vh;
+
+        padding: 35px;
+    }
+
+    .auth-image img {
+        width: min(55%, 250px);
+        max-height: 22vh;
+    }
+
+    .auth-container {
+        min-height: auto;
+
+        padding: 45px 25px;
+    }
+
+    .auth-box h1 {
+        font-size: 42px;
+    }
+}

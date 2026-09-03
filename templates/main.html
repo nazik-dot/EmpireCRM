@@ -1,0 +1,314 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>EmpireCRM — Dashboard</title>
+
+    <link rel="stylesheet" href="{{ url_for('static', filename='main.css') }}">
+</head>
+
+<body>
+
+<main class="dashboard">
+
+    <!-- HEADER -->
+
+    <header class="header">
+
+        <div class="brand">
+            <span class="brand-dot"></span>
+            EmpireCRM
+        </div>
+
+        <div class="header-right">
+            <span class="user-name">
+                {{ current_user.username }}
+            </span>
+
+            <a href="{{ url_for('logout') }}" class="logout">
+                Log out
+            </a>
+        </div>
+
+    </header>
+
+
+    <!-- WELCOME -->
+
+    <section class="welcome">
+
+        <p class="eyebrow">
+            PERSONAL WORKSPACE
+        </p>
+
+        <h1>
+            Welcome back,
+            <span>{{ current_user.username }}</span>
+        </h1>
+
+        <p class="subtitle">
+            Choose what you want to manage.
+        </p>
+
+    </section>
+
+
+    <!-- CORE CRM -->
+
+    <section class="section">
+
+        <div class="section-header">
+            <div>
+                <p class="section-label">01</p>
+                <h2>Core CRM</h2>
+            </div>
+
+            <p class="section-description">
+                Manage your customers, sales and daily work.
+            </p>
+        </div>
+
+
+        <div class="modules">
+
+            <a href="{{ url_for('clients') }}" class="module">
+                <span class="module-number">01</span>
+
+                <div class="module-info">
+                    <h3>Clients</h3>
+                    <p>
+                        Customers, companies, contacts
+                        and client information.
+                    </p>
+                </div>
+
+                <span class="arrow">↗</span>
+            </a>
+
+
+            <a href="#" class="module">
+                <span class="module-number">02</span>
+
+                <div class="module-info">
+                    <h3>Deals</h3>
+                    <p>
+                        Sales opportunities, stages,
+                        amounts and closing dates.
+                    </p>
+                </div>
+
+                <span class="arrow">↗</span>
+            </a>
+
+
+            <a href="#" class="module">
+                <span class="module-number">03</span>
+
+                <div class="module-info">
+                    <h3>Tasks</h3>
+                    <p>
+                        Deadlines, assignments and
+                        upcoming work.
+                    </p>
+                </div>
+
+                <span class="arrow">↗</span>
+            </a>
+
+
+            <a href="#" class="module">
+                <span class="module-number">04</span>
+
+                <div class="module-info">
+                    <h3>Notes</h3>
+                    <p>
+                        Important information attached
+                        to your clients.
+                    </p>
+                </div>
+
+                <span class="arrow">↗</span>
+            </a>
+
+
+            <a href="#" class="module">
+                <span class="module-number">05</span>
+
+                <div class="module-info">
+                    <h3>Activities</h3>
+                    <p>
+                        Calls, meetings, interactions
+                        and CRM history.
+                    </p>
+                </div>
+
+                <span class="arrow">↗</span>
+            </a>
+
+        </div>
+
+    </section>
+
+
+    <!-- FINANCE -->
+
+    <section class="section">
+
+        <div class="section-header">
+            <div>
+                <p class="section-label">02</p>
+                <h2>Finance</h2>
+            </div>
+
+            <p class="section-description">
+                Keep track of invoices and payments.
+            </p>
+        </div>
+
+
+        <div class="modules modules-two">
+
+            <a href="#" class="module">
+                <span class="module-number">06</span>
+
+                <div class="module-info">
+                    <h3>Invoices</h3>
+                    <p>
+                        Amounts, due dates, statuses
+                        and client invoices.
+                    </p>
+                </div>
+
+                <span class="arrow">↗</span>
+            </a>
+
+
+            <a href="#" class="module">
+                <span class="module-number">07</span>
+
+                <div class="module-info">
+                    <h3>Payments</h3>
+                    <p>
+                        Payment amounts, methods,
+                        dates and related invoices.
+                    </p>
+                </div>
+
+                <span class="arrow">↗</span>
+            </a>
+
+        </div>
+
+    </section>
+
+
+    <!-- WORKSPACE -->
+
+    <section class="section">
+
+        <div class="section-header">
+            <div>
+                <p class="section-label">03</p>
+                <h2>Workspace</h2>
+            </div>
+
+            <p class="section-description">
+                Files and notifications for your workspace.
+            </p>
+        </div>
+
+
+        <div class="modules modules-two">
+
+            <a href="#" class="module">
+                <span class="module-number">08</span>
+
+                <div class="module-info">
+                    <h3>Files</h3>
+                    <p>
+                        Upload and organize files
+                        connected to your clients.
+                    </p>
+                </div>
+
+                <span class="arrow">↗</span>
+            </a>
+
+
+            <a href="#" class="module">
+                <span class="module-number">09</span>
+
+                <div class="module-info">
+                    <h3>Notifications</h3>
+                    <p>
+                        Important messages, reminders
+                        and system notifications.
+                    </p>
+                </div>
+
+                <span class="arrow">↗</span>
+            </a>
+
+        </div>
+
+    </section>
+
+
+    <!-- SYSTEM -->
+
+    <section class="section system-section">
+
+        <div class="section-header">
+            <div>
+                <p class="section-label">04</p>
+                <h2>System</h2>
+            </div>
+
+            <p class="section-description">
+                Review the activity history of your account.
+            </p>
+        </div>
+
+
+        <div class="modules">
+
+            <a href="#" class="module">
+
+                <span class="module-number">10</span>
+
+                <div class="module-info">
+                    <h3>Audit Logs</h3>
+                    <p>
+                        Review actions and changes
+                        made inside your CRM.
+                    </p>
+                </div>
+
+                <span class="arrow">↗</span>
+
+            </a>
+
+        </div>
+
+    </section>
+
+
+    <!-- FOOTER -->
+
+    <footer>
+
+        <span>EmpireCRM</span>
+
+        <span>
+            Personal CRM workspace
+        </span>
+
+    </footer>
+
+</main>
+
+</body>
+</html>

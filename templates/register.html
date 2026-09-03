@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Register — EmpireCRM</title>
+
+    <link rel="stylesheet"
+          href="{{ url_for('static', filename='register.css') }}">
+</head>
+
+<body>
+
+    <main class="register-page">
+
+        <section class="register-image">
+            <img
+                src="{{ url_for('static', filename='images/logo.png') }}"
+                alt="Service CRM"
+            >
+        </section>
+
+        <section class="register-content">
+
+            <div class="register-box">
+
+                <a href="{{ url_for('index') }}" class="back-link">
+                    ← Back
+                </a>
+
+                <div class="brand">
+                    <span class="brand-dot"></span>
+                    <span>EmpireCRM</span>
+                </div>
+
+                <h1>Create account.</h1>
+
+                <p class="subtitle">
+                    Start managing your business in one place.
+                </p>
+
+                <form method="POST">
+
+                    <div class="input-group">
+                        <label for="username">Username</label>
+
+                        <input
+                            type="text"
+                            id="username"
+                            name="username"
+                            placeholder="Choose a username"
+                            required
+                        >
+                    </div>
+
+                    <div class="input-group">
+                        <label for="email">Email</label>
+
+                        <input
+                            type="email"
+                            id="email"
+                            name="email"
+                            placeholder="you@example.com"
+                            required
+                        >
+                    </div>
+
+                    <div class="input-group">
+                        <label for="password">Password</label>
+
+                        <input
+                            type="password"
+                            id="password"
+                            name="password"
+                            placeholder="Create a password"
+                            required
+                        >
+                    </div>
+
+                    <button type="submit">
+                        Create account
+                    </button>
+
+                </form>
+
+                <p class="switch">
+                    Already have an account?
+                    <a href="{{ url_for('login') }}">Log in</a>
+                </p>
+
+            </div>
+
+        </section>
+
+    </main>
+
+</body>
+</html>

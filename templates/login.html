@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Log in — EmpireCRM</title>
+
+    <link rel="stylesheet" href="{{ url_for('static', filename='login.css') }}">
+</head>
+
+<body>
+
+    <main class="auth-page">
+
+        <section class="auth-image">
+            <img
+                src="{{ url_for('static', filename='images/logo.png') }}"
+                alt="EmpireCRM"
+            >
+        </section>
+
+        <section class="auth-container">
+
+            <div class="auth-box">
+
+                <a href="{{ url_for('index') }}" class="back-link">
+                    ← Back
+                </a>
+
+                <div class="brand">
+                    <span class="brand-dot"></span>
+                    <span>EmpireCRM</span>
+                </div>
+
+                <h1>Welcome back.</h1>
+
+                <p class="auth-subtitle">
+                    Log in to continue to your workspace.
+                </p>
+
+                <form method="POST">
+
+                    <div class="input-group">
+                        <label for="username">Username</label>
+
+                        <input
+                            type="text"
+                            id="username"
+                            name="username"
+                            placeholder="Enter your username"
+                            required
+                        >
+                    </div>
+
+                    <div class="input-group">
+                        <label for="password">Password</label>
+
+                        <input
+                            type="password"
+                            id="password"
+                            name="password"
+                            placeholder="Enter your password"
+                            required
+                        >
+                    </div>
+
+                    <button type="submit" class="auth-button">
+                        Log in
+                    </button>
+
+                </form>
+
+                <p class="switch-auth">
+                    Don't have an account?
+                    <a href="{{ url_for('register') }}">Register</a>
+                </p>
+
+            </div>
+
+        </section>
+
+    </main>
+
+</body>
+</html>

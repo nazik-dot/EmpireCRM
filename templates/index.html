@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>EmpireCRM</title>
+
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+
+<body>
+
+    <main class="landing">
+
+        <section class="visual">
+            <img
+                src="{{ url_for('static', filename='images/logo.png') }}"
+                alt="EmpireCRM"
+                class="logo"
+            >
+        </section>
+
+        <section class="content">
+
+            <div class="brand">
+                <span class="brand-dot"></span>
+                <span>EmpireCRM</span>
+            </div>
+
+            <h1>
+                Manage your business.
+                <span>Simply.</span>
+            </h1>
+
+            <p class="subtitle">
+                Keep your clients, deals and tasks organized
+                in one place.
+            </p>
+
+            <div class="actions">
+
+                <a href="{{ url_for('login') }}" class="button primary">
+                    Log in
+                </a>
+
+                <a href="{{ url_for('register') }}" class="button secondary">
+                    Register
+                </a>
+
+            </div>
+
+            <p class="footer-text">
+                Build your Empire with us.
+            </p>
+
+        </section>
+
+    </main>
+
+</body>
+</html>

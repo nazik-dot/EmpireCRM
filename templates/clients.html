@@ -1,0 +1,346 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Clients — EmpireCRM</title>
+
+    <link rel="stylesheet"
+          href="{{ url_for('static', filename='clients.css') }}">
+</head>
+
+<body>
+
+    <div class="app">
+
+        <header class="navbar">
+
+            <a href="{{ url_for('main') }}" class="brand">
+                <span class="brand-dot"></span>
+                EmpireCRM
+            </a>
+
+            <nav>
+                <a href="{{ url_for('main') }}">Dashboard</a>
+                <a href="{{ url_for('clients') }}" class="active">Clients</a>
+                <a href="{{ url_for('logout') }}">Logout</a>
+            </nav>
+
+        </header>
+
+
+        <main class="content">
+
+            <div class="page-header">
+
+                <div>
+                    <h1>Clients</h1>
+
+                    <p>
+                        Manage your customers and companies.
+                    </p>
+                </div>
+
+                <button
+                    class="add-button"
+                    onclick="openModal()">
+                    + Add client
+                </button>
+
+            </div>
+
+
+            <div class="toolbar">
+
+                <input
+                    type="text"
+                    id="search"
+                    placeholder="Search clients..."
+                    oninput="searchClients()"
+                >
+
+                <span class="client-count">
+                    {{ clients|length }} clients
+                </span>
+
+            </div>
+
+
+            <div class="table-wrapper">
+
+                <table>
+
+                    <thead>
+                        <tr>
+                            <th>Name</th>
+                            <th>Company</th>
+                            <th>Email</th>
+                            <th>Phone</th>
+                            <th>Status</th>
+                            <th></th>
+                        </tr>
+                    </thead>
+
+                    <tbody id="clientTable">
+
+                        {% for client in clients %}
+
+                        <tr data-client="{{ client.id }}">
+
+                            <td class="client-name">
+                                {{ client.name }}
+                            </td>
+
+                            <td>
+                                {{ client.company or '—' }}
+                            </td>
+
+                            <td>
+                                {{ client.email or '—' }}
+                            </td>
+
+                            <td>
+                                {{ client.phone or '—' }}
+                            </td>
+
+                            <td>
+
+                                <span class="status">
+                                    {{ client.status or 'Unknown' }}
+                                </span>
+
+                            </td>
+
+                            <td class="actions">
+
+                                <button
+                                    class="delete-button"
+                                    onclick="deleteClient({{ client.id }})">
+                                    Delete
+                                </button>
+
+                            </td>
+
+                        </tr>
+
+                        {% else %}
+
+                        <tr>
+                            <td colspan="6" class="empty">
+                                No clients yet.
+                            </td>
+                        </tr>
+
+                        {% endfor %}
+
+                    </tbody>
+
+                </table>
+
+            </div>
+
+        </main>
+
+    </div>
+
+
+    <!-- ADD CLIENT MODAL -->
+
+    <div class="modal" id="clientModal">
+
+        <div class="modal-box">
+
+            <button
+                class="close"
+                onclick="closeModal()">
+                ×
+            </button>
+
+            <h2>Add client</h2>
+
+            <p class="modal-subtitle">
+                Add a new customer to your CRM.
+            </p>
+
+
+            <form
+                method="POST"
+                action="{{ url_for('clients') }}">
+
+                <div class="form-group">
+
+                    <label>Name *</label>
+
+                    <input
+                        type="text"
+                        name="name"
+                        placeholder="John Smith"
+                        required>
+
+                </div>
+
+
+                <div class="form-group">
+
+                    <label>Company</label>
+
+                    <input
+                        type="text"
+                        name="company"
+                        placeholder="Company name">
+
+                </div>
+
+
+                <div class="form-row">
+
+                    <div class="form-group">
+
+                        <label>Email</label>
+
+                        <input
+                            type="email"
+                            name="email"
+                            placeholder="john@example.com">
+
+                    </div>
+
+                    <div class="form-group">
+
+                        <label>Phone</label>
+
+                        <input
+                            type="text"
+                            name="phone"
+                            placeholder="+380...">
+
+                    </div>
+
+                </div>
+
+
+                <div class="form-group">
+
+                    <label>Address</label>
+
+                    <input
+                        type="text"
+                        name="address"
+                        placeholder="Customer address">
+
+                </div>
+
+
+                <div class="form-group">
+
+                    <label>Status</label>
+
+                    <select name="status">
+
+                        <option value="Active">
+                            Active
+                        </option>
+
+                        <option value="Lead">
+                            Lead
+                        </option>
+
+                        <option value="Inactive">
+                            Inactive
+                        </option>
+
+                    </select>
+
+                </div>
+
+
+                <button
+                    type="submit"
+                    class="submit-button">
+                    Create client
+                </button>
+
+            </form>
+
+        </div>
+
+    </div>
+
+
+    <script>
+
+        function openModal() {
+            document
+                .getElementById("clientModal")
+                .classList.add("show");
+        }
+
+        function closeModal() {
+            document
+                .getElementById("clientModal")
+                .classList.remove("show");
+        }
+
+
+        async function deleteClient(id) {
+
+            const response = await fetch(
+                "{{ url_for('clients') }}",
+                {
+                    method: "DELETE",
+
+                    headers: {
+                        "Content-Type": "application/json"
+                    },
+
+                    body: JSON.stringify({
+                        id: id
+                    })
+                }
+            );
+
+            if (response.ok) {
+                const row = document.querySelector(
+                    `tr[data-client="${id}"]`
+                );
+
+                if (row) {
+                    row.remove();
+                }
+            }
+        }
+
+
+        function searchClients() {
+
+            const query =
+                document
+                    .getElementById("search")
+                    .value
+                    .toLowerCase();
+
+            const rows =
+                document.querySelectorAll(
+                    "#clientTable tr[data-client]"
+                );
+
+            rows.forEach(row => {
+
+                const text =
+                    row.innerText.toLowerCase();
+
+                row.style.display =
+                    text.includes(query)
+                        ? ""
+                        : "none";
+
+            });
+        }
+
+    </script>
+
+</body>
+
+</html>
