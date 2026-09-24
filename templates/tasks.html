@@ -1,0 +1,340 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Tasks — EmpireCRM</title>
+
+    <link rel="stylesheet" href="{{ url_for('static', filename='deals.css') }}">
+</head>
+
+<body>
+
+<nav class="navbar">
+
+    <div class="logo">
+        <span class="logo-dot"></span>
+        EmpireCRM
+    </div>
+
+    <div class="nav-links">
+        <a href="{{ url_for('main') }}">Dashboard</a>
+        <a href="{{ url_for('clients') }}">Clients</a>
+        <a href="{{ url_for('deals') }}">Deals</a>
+        <a href="{{ url_for('tasks') }}" class="active">Tasks</a>
+        <a href="{{ url_for('logout') }}">Logout</a>
+    </div>
+
+</nav>
+
+
+<main class="clients-page">
+
+    <div class="page-header">
+
+        <div>
+            <h1>Tasks</h1>
+            <p>Manage your tasks and deadlines.</p>
+        </div>
+
+        <button class="add-client-btn" onclick="openModal()">
+            + Add task
+        </button>
+
+    </div>
+
+
+    <div class="clients-toolbar">
+
+        <div class="search-box">
+
+            <input
+                type="text"
+                id="searchInput"
+                placeholder="Search tasks..."
+                onkeyup="searchTasks()"
+            >
+
+        </div>
+
+        <div class="client-count">
+            {{ tasks|length }} tasks
+        </div>
+
+    </div>
+
+
+    {% if tasks %}
+
+    <div class="table-container">
+
+        <table>
+
+            <thead>
+
+                <tr>
+                    <th>Title</th>
+                    <th>Description</th>
+                    <th>Deadline</th>
+                    <th>Status</th>
+                    <th></th>
+                </tr>
+
+            </thead>
+
+
+            <tbody id="tasksTable">
+
+                {% for task in tasks %}
+
+                <tr data-task="{{ task.id }}">
+
+                    <td>
+                        <strong>{{ task.title }}</strong>
+                    </td>
+
+                    <td>
+                        {{ task.description or '—' }}
+                    </td>
+
+                    <td>
+
+                        {% if task.deadline %}
+                            {{ task.deadline.strftime('%Y-%m-%d') }}
+                        {% else %}
+                            —
+                        {% endif %}
+
+                    </td>
+
+                    <td>
+                        {{ task.status or '—' }}
+                    </td>
+
+                    <td>
+
+                        <button
+                            class="delete-btn"
+                            onclick="deleteTask({{ task.id }})"
+                        >
+                            Delete
+                        </button>
+
+                    </td>
+
+                </tr>
+
+                {% endfor %}
+
+            </tbody>
+
+        </table>
+
+    </div>
+
+    {% else %}
+
+    <div class="empty-state">
+
+        <h2>No tasks yet</h2>
+
+        <p>
+            Add your first task to start organizing your work.
+        </p>
+
+        <button class="add-client-btn" onclick="openModal()">
+            + Add task
+        </button>
+
+    </div>
+
+    {% endif %}
+
+</main>
+
+
+<div class="modal-overlay" id="modal">
+
+    <div class="modal">
+
+        <div class="modal-header">
+
+            <h2>Add task</h2>
+
+            <button class="close-btn" onclick="closeModal()">
+                ×
+            </button>
+
+        </div>
+
+
+        <form method="POST">
+
+            <div class="input-group">
+
+                <label for="title">Title</label>
+
+                <input
+                    type="text"
+                    id="title"
+                    name="title"
+                    placeholder="Task title"
+                    required
+                >
+
+            </div>
+
+
+            <div class="input-group">
+
+                <label for="description">
+                    Description
+                </label>
+
+                <textarea
+                    id="description"
+                    name="description"
+                    placeholder="Task description"
+                ></textarea>
+
+            </div>
+
+
+            <div class="input-group">
+
+                <label for="deadline">
+                    Deadline
+                </label>
+
+                <input
+                    type="date"
+                    id="deadline"
+                    name="deadline"
+                >
+
+            </div>
+
+
+            <div class="input-group">
+
+                <label for="status">Status</label>
+
+                <select id="status" name="status">
+
+                    <option value="Pending">
+                        Pending
+                    </option>
+
+                    <option value="In Progress">
+                        In Progress
+                    </option>
+
+                    <option value="Completed">
+                        Completed
+                    </option>
+
+                </select>
+
+            </div>
+
+
+            <div class="input-group">
+
+                <label for="client_id">
+                    Client ID
+                </label>
+
+                <input
+                    type="number"
+                    id="client_id"
+                    name="client_id"
+                    placeholder="Client ID"
+                >
+
+            </div>
+
+
+            <button type="submit" class="submit-btn">
+                Add task
+            </button>
+
+        </form>
+
+    </div>
+
+</div>
+
+
+<script>
+
+function openModal() {
+    document.getElementById("modal").classList.add("active");
+}
+
+
+function closeModal() {
+    document.getElementById("modal").classList.remove("active");
+}
+
+
+async function deleteTask(id) {
+
+    const response = await fetch(
+        "{{ url_for('tasks') }}",
+        {
+            method: "DELETE",
+
+            headers: {
+                "Content-Type": "application/json"
+            },
+
+            body: JSON.stringify({
+                id: id
+            })
+        }
+    );
+
+
+    if (response.ok) {
+
+        const row = document.querySelector(
+            `tr[data-task="${id}"]`
+        );
+
+        if (row) {
+            row.remove();
+        }
+
+    }
+
+}
+
+
+function searchTasks() {
+
+    const input = document
+        .getElementById("searchInput")
+        .value
+        .toLowerCase();
+
+    const rows = document.querySelectorAll(
+        "#tasksTable tr"
+    );
+
+
+    rows.forEach(row => {
+
+        const text = row.textContent.toLowerCase();
+
+        row.style.display =
+            text.includes(input) ? "" : "none";
+
+    });
+
+}
+
+</script>
+
+</body>
+</html>

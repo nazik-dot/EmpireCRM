@@ -1,0 +1,354 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Invoices — EmpireCRM</title>
+
+    <link rel="stylesheet"
+          href="{{ url_for('static', filename='invoices.css') }}">
+</head>
+
+<body>
+
+<nav class="navbar">
+
+    <div class="logo">
+        <span class="logo-dot"></span>
+        EmpireCRM
+    </div>
+
+    <div class="nav-links">
+        <a href="{{ url_for('main') }}">Dashboard</a>
+        <a href="{{ url_for('clients') }}">Clients</a>
+        <a href="{{ url_for('deals') }}">Deals</a>
+        <a href="{{ url_for('tasks') }}">Tasks</a>
+        <a href="{{ url_for('notes') }}">Notes</a>
+        <a href="{{ url_for('activities') }}">Activities</a>
+        <a href="{{ url_for('invoices') }}" class="active">Invoices</a>
+        <a href="{{ url_for('payments') }}">Payments</a>
+        <a href="{{ url_for('files') }}">Files</a>
+        <a href="{{ url_for('logout') }}">Logout</a>
+    </div>
+
+</nav>
+
+
+<main class="invoices-page">
+
+    <div class="page-header">
+
+        <div>
+            <h1>Invoices</h1>
+            <p>Manage invoices and track their payment status.</p>
+        </div>
+
+        <button class="add-invoice-btn" onclick="openModal()">
+            + Add invoice
+        </button>
+
+    </div>
+
+
+    <div class="invoices-toolbar">
+
+        <div class="search-box">
+            <input
+                type="text"
+                id="searchInput"
+                placeholder="Search invoices..."
+                oninput="searchInvoices()"
+            >
+        </div>
+
+        <div class="invoice-count">
+            {{ invoices|length }} invoices
+        </div>
+
+    </div>
+
+
+    {% if invoices %}
+
+    <div class="table-container">
+
+        <table>
+
+            <thead>
+                <tr>
+                    <th>Amount</th>
+                    <th>Status</th>
+                    <th>Due date</th>
+                    <th>Client ID</th>
+                    <th>Deal ID</th>
+                    <th></th>
+                </tr>
+            </thead>
+
+            <tbody id="invoicesTable">
+
+                {% for invoice in invoices %}
+
+                <tr data-invoice="{{ invoice.id }}">
+
+                    <td>
+                        <strong>${{ "%.2f"|format(invoice.amount) }}</strong>
+                    </td>
+
+                    <td>
+                        {{ invoice.status or '—' }}
+                    </td>
+
+                    <td>
+                        {% if invoice.due_date %}
+                            {{ invoice.due_date.strftime('%Y-%m-%d') }}
+                        {% else %}
+                            —
+                        {% endif %}
+                    </td>
+
+                    <td>
+                        {{ invoice.client_id or '—' }}
+                    </td>
+
+                    <td>
+                        {{ invoice.deal_id or '—' }}
+                    </td>
+
+                    <td>
+                        <button
+                            class="delete-btn"
+                            onclick="deleteInvoice({{ invoice.id }})">
+                            Delete
+                        </button>
+                    </td>
+
+                </tr>
+
+                {% endfor %}
+
+            </tbody>
+
+        </table>
+
+    </div>
+
+    {% else %}
+
+    <div class="empty-state">
+
+        <h2>No invoices yet</h2>
+
+        <p>Create your first invoice to start tracking payments.</p>
+
+        <button class="add-invoice-btn" onclick="openModal()">
+            Add invoice
+        </button>
+
+    </div>
+
+    {% endif %}
+
+</main>
+
+
+<!-- MODAL -->
+
+<div class="modal-overlay" id="modalOverlay">
+
+    <div class="modal">
+
+        <div class="modal-header">
+
+            <h2>Add invoice</h2>
+
+            <button class="close-btn" onclick="closeModal()">
+                &times;
+            </button>
+
+        </div>
+
+
+        <form method="POST" action="{{ url_for('invoices') }}">
+
+            <div class="input-group">
+
+                <label for="amount">
+                    Amount
+                </label>
+
+                <input
+                    type="number"
+                    id="amount"
+                    name="amount"
+                    step="0.01"
+                    min="0"
+                    placeholder="0.00"
+                    required
+                >
+
+            </div>
+
+
+            <div class="input-group">
+
+                <label for="status">
+                    Status
+                </label>
+
+                <select id="status" name="status" required>
+
+                    <option value="">Select status</option>
+                    <option value="Draft">Draft</option>
+                    <option value="Pending">Pending</option>
+                    <option value="Paid">Paid</option>
+                    <option value="Overdue">Overdue</option>
+                    <option value="Cancelled">Cancelled</option>
+
+                </select>
+
+            </div>
+
+
+            <div class="input-group">
+
+                <label for="due_date">
+                    Due date
+                </label>
+
+                <input
+                    type="date"
+                    id="due_date"
+                    name="due_date"
+                >
+
+            </div>
+
+
+            <div class="input-group">
+
+                <label for="client_id">
+                    Client ID
+                </label>
+
+                <input
+                    type="number"
+                    id="client_id"
+                    name="client_id"
+                    placeholder="Client ID"
+                >
+
+            </div>
+
+
+            <div class="input-group">
+
+                <label for="deal_id">
+                    Deal ID
+                </label>
+
+                <input
+                    type="number"
+                    id="deal_id"
+                    name="deal_id"
+                    placeholder="Deal ID"
+                >
+
+            </div>
+
+
+            <button type="submit" class="submit-btn">
+                Create invoice
+            </button>
+
+        </form>
+
+    </div>
+
+</div>
+
+
+<script>
+
+function openModal() {
+    document
+        .getElementById('modalOverlay')
+        .classList.add('active');
+}
+
+
+function closeModal() {
+    document
+        .getElementById('modalOverlay')
+        .classList.remove('active');
+}
+
+
+async function deleteInvoice(id) {
+
+    const response = await fetch(
+        "{{ url_for('invoices') }}",
+        {
+            method: "DELETE",
+
+            headers: {
+                "Content-Type": "application/json"
+            },
+
+            body: JSON.stringify({
+                id: id
+            })
+        }
+    );
+
+    if (response.ok) {
+
+        const row = document.querySelector(
+            `tr[data-invoice="${id}"]`
+        );
+
+        if (row) {
+            row.remove();
+        }
+    }
+}
+
+
+function searchInvoices() {
+
+    const search =
+        document
+            .getElementById('searchInput')
+            .value
+            .toLowerCase();
+
+    const rows =
+        document.querySelectorAll('#invoicesTable tr');
+
+    rows.forEach(row => {
+
+        const text =
+            row.textContent.toLowerCase();
+
+        row.style.display =
+            text.includes(search) ? '' : 'none';
+
+    });
+}
+
+
+document
+    .getElementById('modalOverlay')
+    .addEventListener('click', function(event) {
+
+        if (event.target === this) {
+            closeModal();
+        }
+
+    });
+
+</script>
+
+</body>
+</html>

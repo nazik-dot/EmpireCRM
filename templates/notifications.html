@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Notifications | EmpireCRM</title>
+
+    <link rel="stylesheet"
+          href="{{ url_for('static', filename='notifications.css') }}">
+</head>
+
+<body>
+
+<div class="page">
+
+    <header class="header">
+        <div>
+            <h1>Notifications</h1>
+            <p>Management of notifications</p>
+        </div>
+
+        <a href="{{ url_for('main') }}" class="back-button">
+            ← Back to main
+        </a>
+    </header>
+
+
+    <!-- Створення сповіщення -->
+    <section class="create-section">
+
+        <h2>New Notification</h2>
+
+        <form method="POST" class="notification-form">
+
+            <div class="form-group">
+                <label for="message">Message</label>
+
+                <textarea
+                    id="message"
+                    name="message"
+                    placeholder="Enter notification text..."
+                    required></textarea>
+            </div>
+
+            <div class="form-group checkbox-group">
+
+                <input
+                    type="checkbox"
+                    id="is_read"
+                    name="is_read"
+                    value="true">
+
+                <label for="is_read">
+                    Set as read
+                </label>
+
+            </div>
+
+            <button type="submit" class="add-button">
+                Add notification
+            </button>
+
+        </form>
+
+    </section>
+
+
+    <!-- Список сповіщень -->
+    <section class="notifications-section">
+
+        <div class="section-title">
+            <h2>Notifications</h2>
+
+            <span class="counter">
+                {{ notifications|length }}
+            </span>
+        </div>
+
+
+        {% if notifications %}
+
+            <div class="notifications-list">
+
+                {% for notification in notifications %}
+
+                    <div class="notification-card
+                        {% if not notification.is_read %}unread{% endif %}">
+
+                        <div class="notification-content">
+
+                            <div class="notification-header">
+
+                                {% if not notification.is_read %}
+                                    <span class="status-dot"></span>
+                                    <span class="status-text">
+                                        New
+                                    </span>
+                                {% else %}
+                                    <span class="read-text">
+                                        Read
+                                    </span>
+                                {% endif %}
+
+                            </div>
+
+                            <p class="message">
+                                {{ notification.message }}
+                            </p>
+
+                            <span class="date">
+                                {{ notification.created_at.strftime('%d.%m.%Y %H:%M') }}
+                            </span>
+
+                        </div>
+
+
+                        <button
+                            class="delete-button"
+                            onclick="deleteNotification({{ notification.id }})">
+
+                            Delete
+
+                        </button>
+
+                    </div>
+
+                {% endfor %}
+
+            </div>
+
+        {% else %}
+
+            <div class="empty-state">
+
+                <div class="empty-icon">
+                    🔔
+                </div>
+
+                <h3>There are no notifications</h3>
+
+                <p>
+                    Here you will see all your notifications. When you receive a new notification, it will appear here.
+                </p>
+
+            </div>
+
+        {% endif %}
+
+    </section>
+
+</div>
+
+
+<script>
+
+function deleteNotification(id) {
+
+    fetch("/notifications", {
+        method: "DELETE",
+        headers: {
+            "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+            id: id
+        })
+    })
+    .then(response => {
+
+        if (response.ok) {
+            location.reload();
+        } else {
+            alert("You can't delete this notification.");
+        }
+
+    })
+    .catch(error => {
+        console.error(error);
+        alert("An error occurred.");
+    });
+
+}
+
+</script>
+
+</body>
+</html>

@@ -1,0 +1,339 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Payments — EmpireCRM</title>
+
+    <link rel="stylesheet"
+          href="{{ url_for('static', filename='payments.css') }}">
+</head>
+
+<body>
+
+<nav class="navbar">
+
+    <div class="logo">
+        <span class="logo-dot"></span>
+        EmpireCRM
+    </div>
+
+    <div class="nav-links">
+        <a href="{{ url_for('main') }}">Dashboard</a>
+        <a href="{{ url_for('clients') }}">Clients</a>
+        <a href="{{ url_for('deals') }}">Deals</a>
+        <a href="{{ url_for('tasks') }}">Tasks</a>
+        <a href="{{ url_for('notes') }}">Notes</a>
+        <a href="{{ url_for('activities') }}">Activities</a>
+        <a href="{{ url_for('invoices') }}">Invoices</a>
+        <a href="{{ url_for('payments') }}" class="active">Payments</a>
+        <a href="{{ url_for('files') }}">Files</a>
+        <a href="{{ url_for('logout') }}">Logout</a>
+    </div>
+
+</nav>
+
+
+<main class="payments-page">
+
+    <div class="page-header">
+
+        <div>
+            <h1>Payments</h1>
+            <p>Track incoming payments and payment methods.</p>
+        </div>
+
+        <button class="add-payment-btn" onclick="openModal()">
+            + Add payment
+        </button>
+
+    </div>
+
+
+    <div class="payments-toolbar">
+
+        <div class="search-box">
+            <input
+                type="text"
+                id="searchInput"
+                placeholder="Search payments..."
+                oninput="searchPayments()"
+            >
+        </div>
+
+        <div class="payment-count">
+            {{ payments|length }} payments
+        </div>
+
+    </div>
+
+
+    {% if payments %}
+
+    <div class="table-container">
+
+        <table>
+
+            <thead>
+                <tr>
+                    <th>Amount</th>
+                    <th>Payment method</th>
+                    <th>Payment date</th>
+                    <th>Invoice ID</th>
+                    <th></th>
+                </tr>
+            </thead>
+
+            <tbody id="paymentsTable">
+
+                {% for payment in payments %}
+
+                <tr data-payment="{{ payment.id }}">
+
+                    <td>
+                        <strong>
+                            ${{ "%.2f"|format(payment.amount) }}
+                        </strong>
+                    </td>
+
+                    <td>
+                        {{ payment.payment_method or '—' }}
+                    </td>
+
+                    <td>
+                        {% if payment.payment_date %}
+                            {{ payment.payment_date.strftime('%Y-%m-%d') }}
+                        {% else %}
+                            —
+                        {% endif %}
+                    </td>
+
+                    <td>
+                        {{ payment.invoice_id or '—' }}
+                    </td>
+
+                    <td>
+                        <button
+                            class="delete-btn"
+                            onclick="deletePayment({{ payment.id }})">
+                            Delete
+                        </button>
+                    </td>
+
+                </tr>
+
+                {% endfor %}
+
+            </tbody>
+
+        </table>
+
+    </div>
+
+    {% else %}
+
+    <div class="empty-state">
+
+        <h2>No payments yet</h2>
+
+        <p>Add your first payment to start tracking transactions.</p>
+
+        <button class="add-payment-btn" onclick="openModal()">
+            Add payment
+        </button>
+
+    </div>
+
+    {% endif %}
+
+</main>
+
+
+<!-- MODAL -->
+
+<div class="modal-overlay" id="modalOverlay">
+
+    <div class="modal">
+
+        <div class="modal-header">
+
+            <h2>Add payment</h2>
+
+            <button class="close-btn" onclick="closeModal()">
+                &times;
+            </button>
+
+        </div>
+
+
+        <form method="POST" action="{{ url_for('payments') }}">
+
+            <div class="input-group">
+
+                <label for="amount">
+                    Amount
+                </label>
+
+                <input
+                    type="number"
+                    id="amount"
+                    name="amount"
+                    step="0.01"
+                    min="0"
+                    placeholder="0.00"
+                    required
+                >
+
+            </div>
+
+
+            <div class="input-group">
+
+                <label for="payment_method">
+                    Payment method
+                </label>
+
+                <select
+                    id="payment_method"
+                    name="payment_method"
+                    required
+                >
+
+                    <option value="">Select method</option>
+                    <option value="Cash">Cash</option>
+                    <option value="Card">Card</option>
+                    <option value="Bank transfer">Bank transfer</option>
+                    <option value="PayPal">PayPal</option>
+                    <option value="Other">Other</option>
+
+                </select>
+
+            </div>
+
+
+            <div class="input-group">
+
+                <label for="payment_date">
+                    Payment date
+                </label>
+
+                <input
+                    type="date"
+                    id="payment_date"
+                    name="payment_date"
+                >
+
+            </div>
+
+
+            <div class="input-group">
+
+                <label for="invoice_id">
+                    Invoice ID
+                </label>
+
+                <input
+                    type="number"
+                    id="invoice_id"
+                    name="invoice_id"
+                    placeholder="Invoice ID"
+                >
+
+            </div>
+
+
+            <button type="submit" class="submit-btn">
+                Create payment
+            </button>
+
+        </form>
+
+    </div>
+
+</div>
+
+
+<script>
+
+function openModal() {
+    document
+        .getElementById('modalOverlay')
+        .classList.add('active');
+}
+
+
+function closeModal() {
+    document
+        .getElementById('modalOverlay')
+        .classList.remove('active');
+}
+
+
+async function deletePayment(id) {
+
+    const response = await fetch(
+        "{{ url_for('payments') }}",
+        {
+            method: "DELETE",
+
+            headers: {
+                "Content-Type": "application/json"
+            },
+
+            body: JSON.stringify({
+                id: id
+            })
+        }
+    );
+
+    if (response.ok) {
+
+        const row = document.querySelector(
+            `tr[data-payment="${id}"]`
+        );
+
+        if (row) {
+            row.remove();
+        }
+    }
+}
+
+
+function searchPayments() {
+
+    const search =
+        document
+            .getElementById('searchInput')
+            .value
+            .toLowerCase();
+
+    const rows =
+        document.querySelectorAll('#paymentsTable tr');
+
+    rows.forEach(row => {
+
+        const text =
+            row.textContent.toLowerCase();
+
+        row.style.display =
+            text.includes(search) ? '' : 'none';
+
+    });
+}
+
+
+document
+    .getElementById('modalOverlay')
+    .addEventListener('click', function(event) {
+
+        if (event.target === this) {
+            closeModal();
+        }
+
+    });
+
+</script>
+
+</body>
+</html>

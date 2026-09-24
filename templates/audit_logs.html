@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Audit Logs</title>
+
+    <link rel="stylesheet" href="{{ url_for('static', filename='audit_logs.css') }}">
+</head>
+<body>
+
+<header class="page-header">
+    <div>
+        <h1>Audit Logs</h1>
+        <p>Track actions and changes made in your account.</p>
+    </div>
+
+    <a href="{{ url_for('main') }}" class="back-button">
+        Back to Dashboard
+    </a>
+</header>
+
+<main class="audit-container">
+
+    <section class="create-section">
+        <div class="section-header">
+            <div>
+                <h2>Create Audit Log</h2>
+                <p>Record an action or important event.</p>
+            </div>
+        </div>
+
+        <form method="POST" class="audit-form">
+
+            <div class="form-group">
+                <label for="action">Action</label>
+                <input
+                    type="text"
+                    id="action"
+                    name="action"
+                    placeholder="e.g. Client created"
+                    required
+                >
+            </div>
+
+            <div class="form-group">
+                <label for="description">Description</label>
+                <textarea
+                    id="description"
+                    name="description"
+                    placeholder="Describe what happened..."
+                    rows="4"
+                ></textarea>
+            </div>
+
+            <button type="submit" class="add-button">
+                Add Log
+            </button>
+
+        </form>
+    </section>
+
+
+    <section class="logs-section">
+
+        <div class="section-header">
+            <div>
+                <h2>Activity History</h2>
+                <p>{{ audit_logs|length }} log{% if audit_logs|length != 1 %}s{% endif %}</p>
+            </div>
+        </div>
+
+        {% if audit_logs %}
+
+            <div class="logs-list">
+
+                {% for log in audit_logs %}
+
+                    <article class="log-card">
+
+                        <div class="log-content">
+
+                            <div class="log-top">
+                                <h3>{{ log.action }}</h3>
+
+                                <span class="log-date">
+                                    {{ log.created_at.strftime('%Y-%m-%d %H:%M') }}
+                                </span>
+                            </div>
+
+                            {% if log.description %}
+                                <p class="log-description">
+                                    {{ log.description }}
+                                </p>
+                            {% else %}
+                                <p class="no-description">
+                                    No description provided.
+                                </p>
+                            {% endif %}
+
+                        </div>
+
+                        <button
+                            type="button"
+                            class="delete-button"
+                            onclick="deleteAuditLog({{ log.id }})"
+                        >
+                            Delete
+                        </button>
+
+                    </article>
+
+                {% endfor %}
+
+            </div>
+
+        {% else %}
+
+            <div class="empty-state">
+                <h3>No audit logs yet</h3>
+                <p>Your activity history will appear here.</p>
+            </div>
+
+        {% endif %}
+
+    </section>
+
+</main>
+
+
+<script>
+    async function deleteAuditLog(id) {
+        const response = await fetch("/audit_logs", {
+            method: "DELETE",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify({
+                id: id
+            })
+        });
+
+        if (response.ok) {
+            window.location.reload();
+        } else {
+            alert("Failed to delete audit log.");
+        }
+    }
+</script>
+
+</body>
+</html>

@@ -1,0 +1,312 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Activities — EmpireCRM</title>
+
+    <link rel="stylesheet" href="{{ url_for('static', filename='activities.css') }}">
+</head>
+<body>
+
+<nav class="navbar">
+
+    <div class="logo">
+        <span class="logo-dot"></span>
+        EmpireCRM
+    </div>
+
+    <div class="nav-links">
+        <a href="{{ url_for('main') }}">Dashboard</a>
+        <a href="{{ url_for('clients') }}">Clients</a>
+        <a href="{{ url_for('deals') }}">Deals</a>
+        <a href="{{ url_for('tasks') }}">Tasks</a>
+        <a href="{{ url_for('notes') }}">Notes</a>
+        <a href="{{ url_for('activities') }}" class="active">Activities</a>
+        <a href="{{ url_for('logout') }}">Logout</a>
+    </div>
+
+</nav>
+
+
+<main class="activities-page">
+
+    <div class="page-header">
+
+        <div>
+            <h1>Activities</h1>
+            <p>Track interactions and important events.</p>
+        </div>
+
+        <button class="add-activity-btn" onclick="openModal()">
+            + Add activity
+        </button>
+
+    </div>
+
+
+    <div class="activities-toolbar">
+
+        <div class="search-box">
+            <input
+                type="text"
+                id="searchInput"
+                placeholder="Search activities..."
+                oninput="searchActivities()"
+            >
+        </div>
+
+        <div class="activity-count">
+            {{ activities|length }} activities
+        </div>
+
+    </div>
+
+
+    {% if activities %}
+
+    <div class="table-container">
+
+        <table>
+
+            <thead>
+
+                <tr>
+                    <th>Type</th>
+                    <th>Description</th>
+                    <th>Client ID</th>
+                    <th>Created</th>
+                    <th></th>
+                </tr>
+
+            </thead>
+
+            <tbody id="activitiesTable">
+
+                {% for activity in activities %}
+
+                <tr data-activity="{{ activity.id }}">
+
+                    <td>
+                        <strong>{{ activity.type }}</strong>
+                    </td>
+
+                    <td>
+                        {{ activity.description or '—' }}
+                    </td>
+
+                    <td>
+                        {{ activity.client_id or '—' }}
+                    </td>
+
+                    <td>
+                        {{ activity.created_at.strftime('%Y-%m-%d %H:%M') }}
+                    </td>
+
+                    <td>
+
+                        <button
+                            class="delete-btn"
+                            onclick="deleteActivity({{ activity.id }})"
+                        >
+                            Delete
+                        </button>
+
+                    </td>
+
+                </tr>
+
+                {% endfor %}
+
+            </tbody>
+
+        </table>
+
+    </div>
+
+    {% else %}
+
+    <div class="empty-state">
+
+        <h2>No activities yet</h2>
+
+        <p>
+            Create your first activity to keep track of client interactions.
+        </p>
+
+        <button class="add-activity-btn" onclick="openModal()">
+            Add activity
+        </button>
+
+    </div>
+
+    {% endif %}
+
+</main>
+
+
+<!-- MODAL -->
+
+<div class="modal-overlay" id="modalOverlay">
+
+    <div class="modal">
+
+        <div class="modal-header">
+
+            <h2>Add activity</h2>
+
+            <button class="close-btn" onclick="closeModal()">
+                &times;
+            </button>
+
+        </div>
+
+
+        <form method="POST" action="{{ url_for('activities') }}">
+
+            <div class="input-group">
+
+                <label for="type">
+                    Activity type
+                </label>
+
+                <select id="type" name="type" required>
+
+                    <option value="">Select type</option>
+                    <option value="Call">Call</option>
+                    <option value="Email">Email</option>
+                    <option value="Meeting">Meeting</option>
+                    <option value="Message">Message</option>
+                    <option value="Other">Other</option>
+
+                </select>
+
+            </div>
+
+
+            <div class="input-group">
+
+                <label for="description">
+                    Description
+                </label>
+
+                <textarea
+                    id="description"
+                    name="description"
+                    placeholder="Describe the activity..."
+                ></textarea>
+
+            </div>
+
+
+            <div class="input-group">
+
+                <label for="client_id">
+                    Client ID
+                </label>
+
+                <input
+                    type="number"
+                    id="client_id"
+                    name="client_id"
+                    placeholder="Client ID"
+                >
+
+            </div>
+
+
+            <button type="submit" class="submit-btn">
+                Create activity
+            </button>
+
+        </form>
+
+    </div>
+
+</div>
+
+
+<script>
+
+function openModal() {
+    document
+        .getElementById('modalOverlay')
+        .classList.add('active');
+}
+
+
+function closeModal() {
+    document
+        .getElementById('modalOverlay')
+        .classList.remove('active');
+}
+
+
+async function deleteActivity(id) {
+
+    const response = await fetch(
+        "{{ url_for('activities') }}",
+        {
+            method: "DELETE",
+
+            headers: {
+                "Content-Type": "application/json"
+            },
+
+            body: JSON.stringify({
+                id: id
+            })
+        }
+    );
+
+    if (response.ok) {
+
+        const row = document.querySelector(
+            `tr[data-activity="${id}"]`
+        );
+
+        if (row) {
+            row.remove();
+        }
+
+    }
+}
+
+
+function searchActivities() {
+
+    const search =
+        document
+            .getElementById('searchInput')
+            .value
+            .toLowerCase();
+
+    const rows =
+        document.querySelectorAll('#activitiesTable tr');
+
+    rows.forEach(row => {
+
+        const text =
+            row.textContent.toLowerCase();
+
+        row.style.display =
+            text.includes(search) ? '' : 'none';
+
+    });
+}
+
+
+document
+    .getElementById('modalOverlay')
+    .addEventListener('click', function(event) {
+
+        if (event.target === this) {
+            closeModal();
+        }
+
+    });
+
+</script>
+
+</body>
+</html>

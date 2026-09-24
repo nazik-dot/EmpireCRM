@@ -1,0 +1,354 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Deals — EmpireCRM</title>
+
+    <link rel="stylesheet" href="{{ url_for('static', filename='deals.css') }}">
+</head>
+
+<body>
+
+<nav class="navbar">
+
+    <div class="logo">
+        <span class="logo-dot"></span>
+        EmpireCRM
+    </div>
+
+    <div class="nav-links">
+        <a href="{{ url_for('main') }}">Dashboard</a>
+        <a href="{{ url_for('clients') }}">Clients</a>
+        <a href="{{ url_for('deals') }}" class="active">Deals</a>
+        <a href="{{ url_for('tasks') }}">Tasks</a>
+        <a href="{{ url_for('logout') }}">Logout</a>
+    </div>
+
+</nav>
+
+
+<main class="clients-page">
+
+    <div class="page-header">
+
+        <div>
+            <h1>Deals</h1>
+            <p>Manage your sales opportunities.</p>
+        </div>
+
+        <button class="add-client-btn" onclick="openModal()">
+            + Add deal
+        </button>
+
+    </div>
+
+
+    <div class="clients-toolbar">
+
+        <div class="search-box">
+            <input
+                type="text"
+                id="searchInput"
+                placeholder="Search deals..."
+                onkeyup="searchDeals()"
+            >
+        </div>
+
+        <div class="client-count">
+            {{ deals|length }} deals
+        </div>
+
+    </div>
+
+
+    {% if deals %}
+
+    <div class="table-container">
+
+        <table>
+
+            <thead>
+
+                <tr>
+                    <th>Title</th>
+                    <th>Amount</th>
+                    <th>Stage</th>
+                    <th>Probability</th>
+                    <th>Expected close</th>
+                    <th></th>
+                </tr>
+
+            </thead>
+
+
+            <tbody id="dealsTable">
+
+                {% for deal in deals %}
+
+                <tr data-deal="{{ deal.id }}">
+
+                    <td>
+                        <strong>{{ deal.title }}</strong>
+                    </td>
+
+                    <td>
+                        {% if deal.amount is not none %}
+                            ${{ "%.2f"|format(deal.amount) }}
+                        {% else %}
+                            —
+                        {% endif %}
+                    </td>
+
+                    <td>
+                        {{ deal.stage or '—' }}
+                    </td>
+
+                    <td>
+                        {% if deal.probability is not none %}
+                            {{ deal.probability }}%
+                        {% else %}
+                            —
+                        {% endif %}
+                    </td>
+
+                    <td>
+                        {% if deal.expected_close_date %}
+                            {{ deal.expected_close_date.strftime('%Y-%m-%d') }}
+                        {% else %}
+                            —
+                        {% endif %}
+                    </td>
+
+                    <td>
+                        <button
+                            class="delete-btn"
+                            onclick="deleteDeal({{ deal.id }})"
+                        >
+                            Delete
+                        </button>
+                    </td>
+
+                </tr>
+
+                {% endfor %}
+
+            </tbody>
+
+        </table>
+
+    </div>
+
+    {% else %}
+
+    <div class="empty-state">
+
+        <h2>No deals yet</h2>
+
+        <p>Add your first deal to start managing your sales.</p>
+
+        <button class="add-client-btn" onclick="openModal()">
+            + Add deal
+        </button>
+
+    </div>
+
+    {% endif %}
+
+</main>
+
+
+<div class="modal-overlay" id="modal">
+
+    <div class="modal">
+
+        <div class="modal-header">
+
+            <h2>Add deal</h2>
+
+            <button class="close-btn" onclick="closeModal()">
+                ×
+            </button>
+
+        </div>
+
+
+        <form method="POST">
+
+            <div class="input-group">
+
+                <label for="title">Title</label>
+
+                <input
+                    type="text"
+                    id="title"
+                    name="title"
+                    placeholder="Deal title"
+                    required
+                >
+
+            </div>
+
+
+            <div class="input-group">
+
+                <label for="amount">Amount</label>
+
+                <input
+                    type="number"
+                    step="0.01"
+                    id="amount"
+                    name="amount"
+                    placeholder="0.00"
+                >
+
+            </div>
+
+
+            <div class="input-group">
+
+                <label for="stage">Stage</label>
+
+                <select id="stage" name="stage">
+
+                    <option value="Lead">Lead</option>
+                    <option value="Qualified">Qualified</option>
+                    <option value="Proposal">Proposal</option>
+                    <option value="Negotiation">Negotiation</option>
+                    <option value="Won">Won</option>
+                    <option value="Lost">Lost</option>
+
+                </select>
+
+            </div>
+
+
+            <div class="input-group">
+
+                <label for="probability">Probability (%)</label>
+
+                <input
+                    type="number"
+                    id="probability"
+                    name="probability"
+                    min="0"
+                    max="100"
+                    placeholder="50"
+                >
+
+            </div>
+
+
+            <div class="input-group">
+
+                <label for="expected_close_date">
+                    Expected close date
+                </label>
+
+                <input
+                    type="date"
+                    id="expected_close_date"
+                    name="expected_close_date"
+                >
+
+            </div>
+
+
+            <div class="input-group">
+
+                <label for="client_id">Client ID</label>
+
+                <input
+                    type="number"
+                    id="client_id"
+                    name="client_id"
+                    placeholder="Client ID"
+                >
+
+            </div>
+
+
+            <button type="submit" class="submit-btn">
+                Add deal
+            </button>
+
+        </form>
+
+    </div>
+
+</div>
+
+
+<script>
+
+function openModal() {
+    document.getElementById("modal").classList.add("active");
+}
+
+
+function closeModal() {
+    document.getElementById("modal").classList.remove("active");
+}
+
+
+async function deleteDeal(id) {
+
+    const response = await fetch(
+        "{{ url_for('deals') }}",
+        {
+            method: "DELETE",
+
+            headers: {
+                "Content-Type": "application/json"
+            },
+
+            body: JSON.stringify({
+                id: id
+            })
+        }
+    );
+
+
+    if (response.ok) {
+
+        const row = document.querySelector(
+            `tr[data-deal="${id}"]`
+        );
+
+        if (row) {
+            row.remove();
+        }
+
+    }
+
+}
+
+
+function searchDeals() {
+
+    const input = document
+        .getElementById("searchInput")
+        .value
+        .toLowerCase();
+
+    const rows = document.querySelectorAll(
+        "#dealsTable tr"
+    );
+
+
+    rows.forEach(row => {
+
+        const text = row.textContent.toLowerCase();
+
+        row.style.display =
+            text.includes(input) ? "" : "none";
+
+    });
+
+}
+
+</script>
+
+</body>
+</html>

@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Notes — EmpireCRM</title>
+
+    <link rel="stylesheet" href="{{ url_for('static', filename='notes.css') }}">
+</head>
+<body>
+
+<nav class="navbar">
+    <div class="logo">
+        <span class="logo-dot"></span>
+        EmpireCRM
+    </div>
+
+    <div class="nav-links">
+        <a href="{{ url_for('main') }}">Dashboard</a>
+        <a href="{{ url_for('clients') }}">Clients</a>
+        <a href="{{ url_for('deals') }}">Deals</a>
+        <a href="{{ url_for('tasks') }}">Tasks</a>
+        <a href="{{ url_for('notes') }}" class="active">Notes</a>
+        <a href="{{ url_for('activities') }}">Activities</a>
+        <a href="{{ url_for('logout') }}">Logout</a>
+    </div>
+</nav>
+
+
+<main class="notes-page">
+
+    <div class="page-header">
+        <div>
+            <h1>Notes</h1>
+            <p>Keep important information about your clients.</p>
+        </div>
+
+        <button class="add-note-btn" onclick="openModal()">
+            + Add note
+        </button>
+    </div>
+
+
+    <div class="notes-toolbar">
+
+        <div class="search-box">
+            <input
+                type="text"
+                id="searchInput"
+                placeholder="Search notes..."
+                oninput="searchNotes()"
+            >
+        </div>
+
+        <div class="note-count">
+            {{ notes|length }} notes
+        </div>
+
+    </div>
+
+
+    {% if notes %}
+
+    <div class="table-container">
+
+        <table>
+
+            <thead>
+                <tr>
+                    <th>Note</th>
+                    <th>Client ID</th>
+                    <th>Created</th>
+                    <th></th>
+                </tr>
+            </thead>
+
+            <tbody id="notesTable">
+
+                {% for note in notes %}
+
+                <tr data-note="{{ note.id }}">
+
+                    <td>
+                        <strong>{{ note.text }}</strong>
+                    </td>
+
+                    <td>
+                        {{ note.client_id or '—' }}
+                    </td>
+
+                    <td>
+                        {{ note.created_at.strftime('%Y-%m-%d %H:%M') }}
+                    </td>
+
+                    <td>
+                        <button
+                            class="delete-btn"
+                            onclick="deleteNote({{ note.id }})"
+                        >
+                            Delete
+                        </button>
+                    </td>
+
+                </tr>
+
+                {% endfor %}
+
+            </tbody>
+
+        </table>
+
+    </div>
+
+    {% else %}
+
+    <div class="empty-state">
+        <h2>No notes yet</h2>
+        <p>Create your first note to keep track of important information.</p>
+
+        <button class="add-note-btn" onclick="openModal()">
+            Add note
+        </button>
+    </div>
+
+    {% endif %}
+
+</main>
+
+
+<!-- MODAL -->
+
+<div class="modal-overlay" id="modalOverlay">
+
+    <div class="modal">
+
+        <div class="modal-header">
+
+            <h2>Add note</h2>
+
+            <button class="close-btn" onclick="closeModal()">
+                &times;
+            </button>
+
+        </div>
+
+
+        <form method="POST" action="{{ url_for('notes') }}">
+
+            <div class="input-group">
+
+                <label for="text">
+                    Note
+                </label>
+
+                <textarea
+                    id="text"
+                    name="text"
+                    placeholder="Write your note..."
+                    required
+                ></textarea>
+
+            </div>
+
+
+            <div class="input-group">
+
+                <label for="client_id">
+                    Client ID
+                </label>
+
+                <input
+                    type="number"
+                    id="client_id"
+                    name="client_id"
+                    placeholder="Client ID"
+                >
+
+            </div>
+
+
+            <button type="submit" class="submit-btn">
+                Create note
+            </button>
+
+        </form>
+
+    </div>
+
+</div>
+
+
+<script>
+
+function openModal() {
+    document.getElementById('modalOverlay').classList.add('active');
+}
+
+function closeModal() {
+    document.getElementById('modalOverlay').classList.remove('active');
+}
+
+
+async function deleteNote(id) {
+
+    const response = await fetch(
+        "{{ url_for('notes') }}",
+        {
+            method: "DELETE",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify({
+                id: id
+            })
+        }
+    );
+
+    if (response.ok) {
+
+        const row = document.querySelector(
+            `tr[data-note="${id}"]`
+        );
+
+        if (row) {
+            row.remove();
+        }
+    }
+}
+
+
+function searchNotes() {
+
+    const search =
+        document
+            .getElementById('searchInput')
+            .value
+            .toLowerCase();
+
+    const rows =
+        document.querySelectorAll('#notesTable tr');
+
+    rows.forEach(row => {
+
+        const text =
+            row.textContent.toLowerCase();
+
+        row.style.display =
+            text.includes(search) ? '' : 'none';
+
+    });
+}
+
+
+document
+    .getElementById('modalOverlay')
+    .addEventListener('click', function(event) {
+
+        if (event.target === this) {
+            closeModal();
+        }
+
+    });
+
+</script>
+
+</body>
+</html>

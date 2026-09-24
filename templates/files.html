@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Files — EmpireCRM</title>
+
+    <link rel="stylesheet"
+          href="{{ url_for('static', filename='files.css') }}">
+</head>
+
+<body>
+
+<nav class="navbar">
+
+    <div class="logo">
+        <span class="logo-dot"></span>
+        EmpireCRM
+    </div>
+
+    <div class="nav-links">
+        <a href="{{ url_for('main') }}">Dashboard</a>
+        <a href="{{ url_for('clients') }}">Clients</a>
+        <a href="{{ url_for('deals') }}">Deals</a>
+        <a href="{{ url_for('tasks') }}">Tasks</a>
+        <a href="{{ url_for('notes') }}">Notes</a>
+        <a href="{{ url_for('activities') }}">Activities</a>
+        <a href="{{ url_for('invoices') }}">Invoices</a>
+        <a href="{{ url_for('payments') }}">Payments</a>
+        <a href="{{ url_for('files') }}" class="active">Files</a>
+        <a href="{{ url_for('logout') }}">Logout</a>
+    </div>
+
+</nav>
+
+
+<main class="files-page">
+
+    <div class="page-header">
+
+        <div>
+            <h1>Files</h1>
+            <p>Upload and manage files related to your CRM.</p>
+        </div>
+
+        <button class="add-file-btn" onclick="openModal()">
+            + Upload file
+        </button>
+
+    </div>
+
+
+    <div class="files-toolbar">
+
+        <div class="search-box">
+            <input
+                type="text"
+                id="searchInput"
+                placeholder="Search files..."
+                oninput="searchFiles()"
+            >
+        </div>
+
+        <div class="file-count">
+            {{ files|length }} files
+        </div>
+
+    </div>
+
+
+    {% if files %}
+
+    <div class="table-container">
+
+        <table>
+
+            <thead>
+
+                <tr>
+                    <th>Filename</th>
+                    <th>Path</th>
+                    <th>Uploaded</th>
+                    <th></th>
+                </tr>
+
+            </thead>
+
+            <tbody id="filesTable">
+
+                {% for file in files %}
+
+                <tr data-file="{{ file.id }}">
+
+                    <td>
+                        <strong>
+                            {{ file.filename }}
+                        </strong>
+                    </td>
+
+                    <td>
+                        {{ file.filepath }}
+                    </td>
+
+                    <td>
+                        {{ file.uploaded_at.strftime('%Y-%m-%d %H:%M') }}
+                    </td>
+
+                    <td>
+
+                        <button
+                            class="delete-btn"
+                            onclick="deleteFile({{ file.id }})">
+                            Delete
+                        </button>
+
+                    </td>
+
+                </tr>
+
+                {% endfor %}
+
+            </tbody>
+
+        </table>
+
+    </div>
+
+    {% else %}
+
+    <div class="empty-state">
+
+        <h2>No files yet</h2>
+
+        <p>Upload your first file to store it in EmpireCRM.</p>
+
+        <button class="add-file-btn" onclick="openModal()">
+            Upload file
+        </button>
+
+    </div>
+
+    {% endif %}
+
+</main>
+
+
+<!-- MODAL -->
+
+<div class="modal-overlay" id="modalOverlay">
+
+    <div class="modal">
+
+        <div class="modal-header">
+
+            <h2>Upload file</h2>
+
+            <button class="close-btn" onclick="closeModal()">
+                &times;
+            </button>
+
+        </div>
+
+
+        <form
+            method="POST"
+            action="{{ url_for('files') }}"
+            enctype="multipart/form-data"
+        >
+
+            <div class="input-group">
+
+                <label for="file">
+                    File
+                </label>
+
+                <input
+                    type="file"
+                    id="file"
+                    name="file"
+                    required
+                >
+
+            </div>
+
+
+            <button type="submit" class="submit-btn">
+                Upload file
+            </button>
+
+        </form>
+
+    </div>
+
+</div>
+
+
+<script>
+
+function openModal() {
+    document
+        .getElementById('modalOverlay')
+        .classList.add('active');
+}
+
+
+function closeModal() {
+    document
+        .getElementById('modalOverlay')
+        .classList.remove('active');
+}
+
+
+async function deleteFile(id) {
+
+    const response = await fetch(
+        "{{ url_for('files') }}",
+        {
+            method: "DELETE",
+
+            headers: {
+                "Content-Type": "application/json"
+            },
+
+            body: JSON.stringify({
+                id: id
+            })
+        }
+    );
+
+    if (response.ok) {
+
+        const row = document.querySelector(
+            `tr[data-file="${id}"]`
+        );
+
+        if (row) {
+            row.remove();
+        }
+    }
+}
+
+
+function searchFiles() {
+
+    const search =
+        document
+            .getElementById('searchInput')
+            .value
+            .toLowerCase();
+
+    const rows =
+        document.querySelectorAll('#filesTable tr');
+
+    rows.forEach(row => {
+
+        const text =
+            row.textContent.toLowerCase();
+
+        row.style.display =
+            text.includes(search) ? '' : 'none';
+
+    });
+}
+
+
+document
+    .getElementById('modalOverlay')
+    .addEventListener('click', function(event) {
+
+        if (event.target === this) {
+            closeModal();
+        }
+
+    });
+
+</script>
+
+</body>
+</html>

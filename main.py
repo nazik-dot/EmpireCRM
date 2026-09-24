@@ -1,14 +1,17 @@
+import os
 from flask import Flask, render_template, session, redirect, url_for, request
 from flask_sqlalchemy import SQLAlchemy
 from flask_login import LoginManager, UserMixin, login_user, login_required, logout_user, current_user
 from werkzeug.security import generate_password_hash, check_password_hash
 from datetime import datetime
-from config import SECRET_KEY
+import uuid
+import magic
 
 app = Flask(__name__)
-app.config['SECRET_KEY'] = SECRET_KEY
+app.config['SECRET_KEY'] = os.getenv('SECRET_KEY')
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///service.db'
 app.config['SQLALCHEMY_TRACK_NOTIFICATIONS'] = False
+USERS_FILES_PATH = "static/users_files"
 
 login_manager = LoginManager(app)
 login_manager.login_message = 'Please, login to access the service.'
@@ -48,7 +51,7 @@ class Deal(db.Model):
     amount = db.Column(db.Float)
     stage = db.Column(db.String(50))
     probability = db.Column(db.Integer)
-    expected_close_date = db.Column(db.DateTime)
+    expected_close_date = db.Column(db.DateTime, default=datetime.now)
     created_at = db.Column(db.DateTime, default=datetime.now)
 
     client_id = db.Column(db.Integer, db.ForeignKey('client.id'))
@@ -91,14 +94,17 @@ class Invoice(db.Model):
 
     client_id = db.Column(db.Integer, db.ForeignKey('client.id'))
     deal_id = db.Column(db.Integer, db.ForeignKey('deal.id'))
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
 
 class Payment(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     amount = db.Column(db.Numeric(10, 2), nullable=False)
     payment_method = db.Column(db.String(50))
     payment_date = db.Column(db.DateTime)
+    created_at = db.Column(db.DateTime, default=datetime.now)
 
     invoice_id = db.Column(db.Integer, db.ForeignKey('invoice.id'))
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
 
 class File(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -172,7 +178,7 @@ def main():
         return redirect(url_for('login'))
     return render_template('main.html')
 
-@app.route('/clients', methods=['GET', 'POST', 'PUT', 'DELETE'])
+@app.route('/clients', methods=['GET', 'POST', 'DELETE'])
 def clients():
     if request.method == 'POST':
         name = request.form['name']
@@ -185,19 +191,6 @@ def clients():
         db.session.add(client)
         db.session.commit()
         return redirect(url_for('main'))
-    elif request.method == 'PUT':
-        data = request.get_json()
-        client = Client.query.filter_by(id=data['id'], user_id=current_user.id).first()
-        if client:
-            client.name = data['name']
-            client.company = data['company']
-            client.email = data['email']
-            client.phone = data['phone']
-            client.address = data['address']
-            client.status = data['status']
-            db.session.commit()
-            return '', 204
-        return '', 404
     elif request.method == 'DELETE':
         data = request.get_json()
         client = Client.query.filter_by(id=data['id'], user_id=current_user.id).first()
@@ -208,6 +201,206 @@ def clients():
         return '', 404
     clients = Client.query.filter_by(user_id=current_user.id).order_by(Client.created_at.desc()).all()
     return render_template('clients.html', clients=clients)
+
+@app.route('/deals', methods=['GET', 'POST', 'DELETE'])
+def deals():
+    if request.method == 'POST':
+        title = request.form['title']
+        amount = request.form['amount']
+        stage = request.form['stage']
+        probability = request.form['probability']
+        expected_close_date = request.form['expected_close_date']
+        date_obj = datetime.strptime(expected_close_date, "%Y-%m-%d")
+        client_id = request.form['client_id']
+        deal = Deal(title=title, amount=amount, stage=stage, probability=probability, expected_close_date=date_obj, client_id=client_id, user_id=current_user.id)
+        db.session.add(deal)
+        db.session.commit()
+        return redirect(url_for('main'))
+    elif request.method == 'DELETE':
+        data = request.get_json()
+        deal = Deal.query.filter_by(id=data['id'], user_id=current_user.id).first()
+        if deal:
+            db.session.delete(deal)
+            db.session.commit()
+            return '', 204
+        return '', 404
+    deals = Deal.query.filter_by(user_id=current_user.id).order_by(Deal.created_at.desc()).all()
+    return render_template('deals.html', deals=deals)
+
+@app.route('/tasks', methods=['GET', 'POST', 'DELETE'])
+def tasks():
+    if request.method == 'POST':
+        title = request.form['title']
+        description = request.form['description']
+        deadline = request.form['deadline']
+        date_obj = datetime.strptime(deadline, "%Y-%m-%d")
+        status = request.form['status']
+        client_id = request.form['client_id']
+        task = Task(title=title, description=description, deadline=date_obj, status=status, client_id=client_id, user_id=current_user.id)
+        db.session.add(task)
+        db.session.commit()
+        return redirect(url_for('main'))
+    elif request.method == 'DELETE':
+        data = request.get_json()
+        task = Task.query.filter_by(id=data['id'], user_id=current_user.id).first()
+        if task:
+            db.session.delete(task)
+            db.session.commit()
+            return '', 204
+        return '', 404
+    tasks = Task.query.filter_by(user_id=current_user.id).order_by(Task.created_at.desc()).all()
+    return render_template('tasks.html', tasks=tasks)
+
+@app.route('/notes', methods=['GET', 'POST', 'DELETE'])
+def notes():
+    if request.method == 'POST':
+        text = request.form['text']
+        client_id = request.form['client_id']
+        note = Note(text=text, client_id=client_id, user_id=current_user.id)
+        db.session.add(note)
+        db.session.commit()
+        return redirect(url_for('main'))
+    elif request.method == 'DELETE':
+        data = request.get_json()
+        note = Note.query.filter_by(id=data['id'], user_id=current_user.id).first()
+        if note:
+            db.session.delete(note)
+            db.session.commit()
+            return '', 204
+        return '', 404
+    notes = Note.query.filter_by(user_id=current_user.id).order_by(Note.created_at.desc()).all()
+    return render_template('notes.html', notes=notes)
+
+@app.route('/activities', methods=['GET', 'POST', 'DELETE'])
+def activities():
+    if request.method == 'POST':
+        type = request.form['type']
+        description = request.form['description']
+        client_id = request.form['client_id']
+        activity = Activity(type=type, description=description, client_id=client_id, user_id=current_user.id)
+        db.session.add(activity)
+        db.session.commit()
+        return redirect(url_for('main'))
+    elif request.method == 'DELETE':
+        data = request.get_json()
+        activity = Activity.query.filter_by(id=data['id'], user_id=current_user.id).first()
+        if activity:
+            db.session.delete(activity)
+            db.session.commit()
+            return '', 204
+        return '', 404
+    activities = Activity.query.filter_by(user_id=current_user.id).order_by(Activity.created_at.desc()).all()
+    return render_template('activities.html', activities=activities)
+
+@app.route('/invoices', methods=['GET', 'POST', 'DELETE'])
+def invoices():
+    if request.method == 'POST':
+        amount = request.form['amount']
+        status = request.form['status']
+        due_date = request.form['due_date']
+        date_obj = datetime.strptime(due_date, "%Y-%m-%d")
+        client_id = request.form['client_id']
+        deal_id = request.form['deal_id']
+        invoice = Invoice(amount=amount, status=status, due_date=date_obj, client_id=client_id, deal_id=deal_id, user_id=current_user.id)
+        db.session.add(invoice)
+        db.session.commit()
+        return redirect(url_for('main'))
+    elif request.method == 'DELETE':
+        data = request.get_json()
+        invoice = Invoice.query.filter_by(id=data['id'], user_id=current_user.id).first()
+        if invoice:
+            db.session.delete(invoice)
+            db.session.commit()
+            return '', 204
+        return '', 404
+    invoices = Invoice.query.filter_by(user_id=current_user.id).order_by(Invoice.created_at.desc()).all()
+    return render_template('invoices.html', invoices=invoices)
+
+@app.route('/payments', methods=['GET', 'POST', 'DELETE'])
+def payments():
+    if request.method == 'POST':
+        amount = request.form['amount']
+        payment_method = request.form['payment_method']
+        payment_date = request.form['payment_date']
+        date_obj = datetime.strptime(payment_date, "%Y-%m-%d")
+        invoice_id = request.form['invoice_id']
+        payment = Payment(amount=amount, payment_method=payment_method, payment_date=date_obj, invoice_id=invoice_id, user_id=current_user.id)
+        db.session.add(payment)
+        db.session.commit()
+        return redirect(url_for('main'))
+    elif request.method == 'DELETE':
+        data = request.get_json()
+        payment = Payment.query.filter_by(id=data['id'], user_id=current_user.id).first()
+        if payment:
+            db.session.delete(payment)
+            db.session.commit()
+            return '', 204
+        return '', 404
+    payments = Payment.query.filter_by(user_id=current_user.id).order_by(Payment.created_at.desc()).all()
+    return render_template('payments.html', payments=payments)
+
+@app.route('/files', methods=['GET', 'POST', 'DELETE'])
+def files():
+    if request.method == 'POST':
+        file = request.files['file']
+        if file:
+            filename = f"{uuid.uuid4()}_{file.filename}"
+            filepath = os.path.join(USERS_FILES_PATH, filename)
+            file.save(filepath)
+            new_file = File(filename=filename, filepath=filepath, user_id=current_user.id)
+            db.session.add(new_file)
+            db.session.commit()
+        return redirect(url_for('main'))
+    elif request.method == 'DELETE':
+        data = request.get_json()
+        file = File.query.filter_by(id=data['id'], user_id=current_user.id).first()
+        if file:
+            db.session.delete(file)
+            db.session.commit()
+            return '', 204
+        return '', 404
+    files = File.query.filter_by(user_id=current_user.id).order_by(File.uploaded_at.desc()).all()
+    return render_template('files.html', files=files)
+
+@app.route('/notifications', methods=['GET', 'POST', 'DELETE'])
+def notifications():
+    if request.method == 'POST':
+        message = request.form['message']
+        is_read = request.form.get('is_read', 'false').lower() == 'true'
+        notification = Notification(message=message, is_read=is_read, user_id=current_user.id)
+        db.session.add(notification)
+        db.session.commit()
+        return redirect(url_for('main'))
+    elif request.method == 'DELETE':
+        data = request.get_json()
+        notification = Notification.query.filter_by(id=data['id'], user_id=current_user.id).first()
+        if notification:
+            db.session.delete(notification)
+            db.session.commit()
+            return '', 204
+        return '', 404
+    notifications = Notification.query.filter_by(user_id=current_user.id).order_by(Notification.created_at.desc()).all()
+    return render_template('notifications.html', notifications=notifications)
+
+@app.route('/audit_logs', methods=['GET', 'POST', 'DELETE'])
+def audit_logs():
+    if request.method == 'POST':
+        action = request.form['action']
+        description = request.form['description']
+        audit_log = AuditLog(action=action, description=description, user_id=current_user.id)
+        db.session.add(audit_log)
+        db.session.commit()
+        return redirect(url_for('main'))
+    elif request.method == 'DELETE':
+        data = request.get_json()
+        audit_log = AuditLog.query.filter_by(id=data['id'], user_id=current_user.id).first()
+        if audit_log:
+            db.session.delete(audit_log)
+            db.session.commit()
+            return '', 204
+        return '', 404
+    audit_logs = AuditLog.query.filter_by(user_id=current_user.id).order_by(AuditLog.created_at.desc()).all()
+    return render_template('audit_logs.html', audit_logs=audit_logs)
 
 @app.route('/logout')
 @login_required
